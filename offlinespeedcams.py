@@ -94,18 +94,21 @@ def igo2sygic(files, igo_types, dat_filename, debug):
                     if debug:
                         print(speedcam_csv.line_num, 'SPEED', row[3], speed, sep='; ')
 
-                #is type a integer? if not, set as normal speed camera - 1
-                if not kind.isdigit():
-                    kind = '1'
-                    if debug:
-                        print(speedcam_csv.line_num, 'TYPE', row[2], kind, sep='; ')
+                if igo_types:
+                    #is type a integer? if not, set as normal speed camera - 1
+                    if not kind.isdigit():
+                        kind = '1'
+                        if debug:
+                            print(speedcam_csv.line_num, 'TYPE', row[2], kind, sep='; ')
 
-                if kind in igo_types:
-                    kind = igo_types[kind]
+                    if kind in igo_types:
+                        kind = igo_types[kind]
+                    else:
+                        if debug and igo_types:
+                            print(speedcam_csv.line_num, 'TYPE', row[2], 'not defined in igotypes', sep='; ')
+                        continue
                 else:
                     kind = '1'
-                    if debug and igo_types:
-                        print(speedcam_csv.line_num, 'TYPE', row[2], 'not defined in igotypes', sep='; ')
 
                 #convert to sygic format
                 speedcams.append([int(float(latitude) * 100000), int(float(longitude) * 100000), int(speed), int(kind)])
