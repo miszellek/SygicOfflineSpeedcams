@@ -1,8 +1,8 @@
 # Sygic OfflineSpeedcams
 
-[![Sygic](https://img.shields.io/badge/sygic-15.6.5%2B-red.svg)]()
-[![Python](https://img.shields.io/badge/python-2.7%2B%2C%203.6%2B-blue.svg)]()
-[![Licence](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+![Sygic 15.6.5+](https://img.shields.io/badge/sygic-15.6.5%2B-red.svg)
+![Python 2.7+, 3.6+](https://img.shields.io/badge/python-2.7%2B%2C%203.6%2B-blue.svg)
+[![MIT Licence](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/miszellek)
 
 
@@ -98,7 +98,7 @@ Defects of this solution:
 * If you are use 'Advanced Voice' - you will not see anything (icon/symbol), for non standard warnings (form 2 to 7). If you want see icons for types between 2 and 9, you must add them as [POI](https://www.sygic.com/pl/company/poi), but .rupi must be separately for each country ;( 
 * If you use 'Standard Voice' - you will not see and hear anything, for non standard warnings (form 2 to 7) 
 
-
+ 
 Another examples:
 ```
 # import all types as standard speed camera, but omit railway crossing (6)
