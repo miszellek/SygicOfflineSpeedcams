@@ -29,9 +29,10 @@ import csv
 import sqlite3
 import os
 import re
+import datetime
 
 
-def igo2sygic(files, igo_types, dat_filename, debug):
+def igo2sygic(files, igo_types, debug):
     """
     SpeedCamText.txt
 
@@ -64,7 +65,8 @@ def igo2sygic(files, igo_types, dat_filename, debug):
 
                 #omit bad lines
                 if len(row) != 6:
-                    print(speedcam_csv.line_num, 'BAD LINE !!!', sep='; ')
+                    if debug:
+                        print(speedcam_csv.line_num, 'BAD LINE !!!', sep='; ')
                     continue
 
                 latitude, longitude, speed, kind = row[1], row[0], row[3], row[2]
@@ -186,9 +188,62 @@ def igo2sygic(files, igo_types, dat_filename, debug):
     del_list.sort(key=int, reverse=True)
     [speedcams.pop(d) for d in del_list]
 
-    print('\nSpeedCameras after cleaning: {:,}'.format(len(speedcams)))
+    return speedcams
 
-    save_dat(speedcams, dat_filename, debug)
+
+def points2map(speedcams):
+    html_filename = 'offlinespeedcams.dat_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+
+    html = []
+    html.append('<!DOCTYPE html>')
+    html.append('<html>')
+    html.append('<head>')
+    html.append('    <title>' + html_filename + '</title>')
+    html.append('    <meta charset="utf-8">')
+    html.append('    <style>')
+    html.append('        #map { height: 100%; }')
+    html.append('        html, body { height: 100%; margin: 0; padding: 0; }')
+    html.append('    </style>')
+    html.append('</head>')
+    html.append('<body>')
+    html.append('<div id="map"></div>')
+    html.append('<script>')
+    html.append('    var map;')
+    html.append('')
+    html.append('    function initMap() {')
+    html.append('        map = new google.maps.Map(document.getElementById("map"), {')
+    html.append('            zoom: 5,')
+    html.append('            center: new google.maps.LatLng(48.208775, 16.372477)')
+    html.append('        });')
+    html.append('')
+    html.append('        var speedCams = [')
+
+    for sc in speedcams:
+        latitude, longitude, speed_limit, kind = sc
+
+        latitude = str(float(latitude) / 100000)
+        longitude = str(float(longitude) / 100000)
+        title = 'SPEED: {speed_limit}; TYPE: {kind};'.format(speed_limit=speed_limit, kind=kind)
+
+        html.append('{y:' + latitude + ',x:' + longitude + ',t:"' + title + '"},')
+
+    html.append('        ];')
+    html.append('')
+    html.append('        speedCams.forEach(function (speedCam) {')
+    html.append('            var marker = new google.maps.Marker({')
+    html.append('                map: map,')
+    html.append('                position: new google.maps.LatLng(speedCam.y, speedCam.x),')
+    html.append('                title: speedCam.t')
+    html.append('            });')
+    html.append('        });')
+    html.append('    }')
+    html.append('</script>')
+    html.append('<script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>')
+    html.append('</body>')
+    html.append('</html>')
+
+    with open(html_filename + '.html', 'w') as html_file:
+        html_file.write('\n'.join(html))
 
 
 def save_dat(speedcams, dat_filename, debug):
@@ -221,6 +276,7 @@ def save_dat(speedcams, dat_filename, debug):
     offspeedcams = set(offspeedcams)
 
     #generate SQL
+    speedcams_added = []
     sql = []
     for sc in speedcams:
         latitude, longitude, speed_limit, kind = sc
@@ -228,6 +284,7 @@ def save_dat(speedcams, dat_filename, debug):
         if (latitude, longitude) not in offspeedcams:
             max_id += 1
             sql.append('insert into OfflineSpeedcam (Id, Latitude, Longitude, Type, Angle, BothWays, SpeedLimit, Osm) values ({Id}, {Latitude}, {Longitude}, {Type}, NULL, 1, {SpeedLimit}, 0);'.format(Id=max_id, Latitude=latitude, Longitude=longitude, SpeedLimit=speed_limit, Type=kind))
+            speedcams_added.append(sc)
         else:
             if debug:
                 print('Already exists in db', (latitude, longitude))
@@ -237,7 +294,7 @@ def save_dat(speedcams, dat_filename, debug):
         conn.executescript(''.join(sql))
         conn.executescript('COMMIT')
 
-    print('\nSpeedCameras added: {:,}'.format(len(sql)))
+    return speedcams_added
 
 
 if __name__ == '__main__':
@@ -249,10 +306,20 @@ if __name__ == '__main__':
     arg_parser.add_argument('-d', '--dat', '--destination', type=str, default='offlinespeedcams.dat', help='Destination DAT file')
     arg_parser.add_argument('-it', '--igotypes', action=type('', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='Default everything is 1 = speedcam. But you can specific your own type, first igo, second sygic: 1=1,2=1,3=2,4=3,5=9,6=4,7=9')
     arg_parser.add_argument('--debug', action='store_true', help='Print debug data')
+    arg_parser.add_argument('--map', action='store_true', default=True, help='Generate Google Maps with added points')
 
     arg_parser.add_argument('files', nargs='*', help='Source files')
 
     args = arg_parser.parse_args()
 
     if args.type == 'igo':
-        igo2sygic(args.files, args.igo_types, args.dat, args.debug)
+        speedcams = igo2sygic(args.files, args.igo_types, args.debug)
+
+        print('\nSpeedCameras after cleaning: {:,}'.format(len(speedcams)))
+
+        speedcams_added = save_dat(speedcams, args.dat, args.debug)
+
+        print('\nSpeedCameras added: {:,}'.format(len(speedcams_added)))
+
+        if args.map and speedcams_added:
+            points2map(speedcams_added)
