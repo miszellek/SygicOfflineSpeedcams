@@ -31,7 +31,7 @@ python offlinespeedcams.py speedcam_A.txt speedcam_AND.txt speedcam_B.txt speedc
 python offlinespeedcams.py --debug SpeedCamText.txt
 
 # 'type' translator
-python offlinespeedcams.py --debug --igotypes 1=1,2=1,3=1,4=1,5=9,7=9 speedcam_EU.txt
+python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5 speedcam_EU.txt
 ```
 
 
@@ -52,9 +52,35 @@ Igo types of speed camera:
 7 - not constant mobile locations
 ```
 
-In Sygic column 'Type' in table 'OfflineSpeedcam' is equivalent to speedCamWarn{Type} in TTS info2.ini (Type: 9 = speedCamWarn9):
+Sygic types of speed camera:
 ```
+0 - RADAR_SYMBOL
+1 - RADAR_STATIC_SPEED
+2 - RADAR_STATIC_RED_LIGHT
+3 - RADAR_SEMIMOBILE_SPEED
+4 - RADAR_STATIC_AVERAGE_SPEED
+5 - RADAR_MOBILE_SPEED
+6 - RADAR_STATIC_RED_LIGHT_SPEED
+7 - RADAR_MOBILE_RED_LIGHT
+8 - RADAR_MOBILE_AVERAGE_SPEED
+9 - RADAR_FAV_COPS_PLACE
+10 - RADAR_INFO_CAMERA
+11 - RADAR_DANGEROUS_PLACE
+12 - RADAR_CONGESTION
+13 - RADAR_WEIGHT_CHECK
+14 - RADAR_DISTANCE_CHECK
+15 - RADAR_CLOSURE
+16 - RADAR_SCHOOLZONE
+```
+
+In Sygic, column 'Type' in table 'OfflineSpeedcam' is equivalent to speedCamWarn{Type} in TTS info2.ini (Type: 9 = speedCamWarn9):
+```
+#I was try change it here
 /Android/data/com.sygic.aura/files/Res/tts_info/TTS {YOUR LANGUAGE}/info2.ini
+```
+```
+#but I had modify it inside the APK (and resign the apk after that):
+\assets\Res\tts_info\TTS {YOUR LANGUAGE}/info2.ini
 ```
 
 For example ENG TTS:
@@ -75,35 +101,33 @@ speedCamWarn11=Accident is ahead.
 You can change it to:
 ```
 speedCamWarn1=Speed camera is %DISTANCE% ahead.
-speedCamWarn2=Red light and speed camera is %DISTANCE% ahead.
-speedCamWarn3=Red light camera is %DISTANCE% ahead.
-speedCamWarn4=Section camera is %DISTANCE% ahead.
+speedCamWarn2=Red light camera is %DISTANCE% ahead.
+speedCamWarn3=Semi mobile speed camera is %DISTANCE% ahead.
+speedCamWarn4=Average speed camera is %DISTANCE% ahead.
 speedCamWarn5=Mobile speed camera is %DISTANCE% ahead.
-speedCamWarn6=Railway crossing is %DISTANCE% ahead.
-speedCamWarn7=Mobile speed camera could be %DISTANCE% ahead.
+speedCamWarn6=Red light and speed camera is %DISTANCE% ahead.
+speedCamWarn7=Mobile red light camera is %DISTANCE% ahead.
+speedCamWarn8=Mobile average speed camera is %DISTANCE% ahead.
 speedCamWarn9=Police is %DISTANCE% ahead.
-speedCamWarn16=Schoolzone is %DISTANCE% ahead.
-speedCamWarn15=Closure is %DISTANCE% ahead.
-speedCamWarn12=Traffic is %DISTANCE% ahead.
+speedCamWarn10=Different speed camera is %DISTANCE% ahead.
 speedCamWarn11=Accident is %DISTANCE% ahead.
+speedCamWarn12=Traffic is %DISTANCE% ahead.
+speedCamWarn13=Weight check is %DISTANCE% ahead.
+speedCamWarn14=Distance check is %DISTANCE% ahead.
+speedCamWarn15=Closure is %DISTANCE% ahead.
+speedCamWarn16=School zone is %DISTANCE% ahead.
 ```
 
 And convert points like this:
 ```
-python offlinespeedcams.py --igotypes 1=1,2=2,3=3,4=4,5=5,6=6,7=7 SpeedCamText.txt
+# import all types speed camera, but omit railway crossing (6)
+python offlinespeedcams.py --igotypes 1=1,2=6,3=2,4=4,5=9,7=5 SpeedCamText.txt
 ```
 
-Defects of this solution:
+Of Course you can, not modify info2.ini, but you only hear "Speed camera is ahead", for every type.
 
-* If you are use 'Advanced Voice' - you will not see anything (icon/symbol), for non standard warnings (form 2 to 7). If you want see icons for types between 2 and 9, you must add them as [POI](https://www.sygic.com/pl/company/poi), but .rupi must be separately for each country ;( 
-* If you use 'Standard Voice' - you will not see and hear anything, for non standard warnings (form 2 to 7) 
-
- 
-Another examples:
-```
-# import all types as standard speed camera, but omit railway crossing (6)
-python offlinespeedcams.py --igotypes 1=1,2=1,3=1,4=1,5=1,7=1 SpeedCamText.txt
-```
+PS:
+Type 3 - RADAR_SEMIMOBILE_SPEED only show icon, no sound
 
 **What with Angle, BothWays and Osm?**
 
