@@ -1,4 +1,5 @@
-from __future__ import print_function, absolute_import
+# -*- coding: utf-8 -*-
+from __future__ import print_function, absolute_import, unicode_literals
 
 """
 Sygic OfflineSpeedCams generator. 
@@ -56,7 +57,7 @@ def igo2sygic(files, igo_types, debug):
             print('\n' + filename)
 
         with open(filename, 'rb') as csvfile:
-            speedcam_csv = csv.reader(csvfile, delimiter=',', quotechar='"')
+            speedcam_csv = csv.reader(csvfile, delimiter=b',', quotechar=b'"')
 
             for row in speedcam_csv:
                 #omit header
@@ -297,7 +298,8 @@ def points2map(speedcams):
     html.append('                    map: map,')
     html.append('                    position: new google.maps.LatLng(speedCam.y, speedCam.x),')
     html.append('                    title: "SPEED: " + speedCam.t + "; TYPE: " + speedCam.t + ";",')
-    html.append('                    type: speedCam.t')
+    html.append('                    type: speedCam.t,')
+    html.append('                    visible: false')
     html.append('                }));')
     html.append('        });')
     html.append('')
@@ -328,7 +330,7 @@ def points2map(speedcams):
     html.append('            var controlCheckBox = document.createElement("input");')
     html.append('            controlCheckBox.value = type;')
     html.append('            controlCheckBox.type = "checkbox";')
-    html.append('            controlCheckBox.checked = true;')
+    html.append('            controlCheckBox.checked = false;')
     html.append('            controlCheckBox.style.margin = "0px 5px 0px 5px";')
     html.append('            controlCheckBox.style.verticalAlign = "middle";')
     html.append('')
@@ -429,12 +431,14 @@ def save_dat(speedcams, dat_filename, debug):
 
 if __name__ == '__main__':
     import argparse
+    import fnmatch
+    import locale
 
     arg_parser = argparse.ArgumentParser(description='Sygic offlinespeedcams.dat generator. Convert Speed Camera / Photo Radar from IGO to Sygic', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     arg_parser.add_argument('-t', '--type', choices=['igo'], default='igo', help='Input type')
     arg_parser.add_argument('-d', '--dat', type=str, default='offlinespeedcams.dat', help='DAT file')
-    arg_parser.add_argument('-it', '--igotypes', action=type('', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
+    arg_parser.add_argument('-it', '--igotypes', action=type(b'', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
     arg_parser.add_argument('--debug', action='store_true', help='Print debug data')
     arg_parser.add_argument('--map', action='store_true', default=True, help='Generate Google Maps with added points')
     arg_parser.add_argument('--dat2map', action='store_true', default=False, help='Generate Google Maps with points from offlinespeedcams.dat')
@@ -443,8 +447,34 @@ if __name__ == '__main__':
 
     args = arg_parser.parse_args()
 
-    if args.type == 'igo' and args.files:
-        speedcams = igo2sygic(args.files, args.igo_types, args.debug)
+
+    def list_dir(cur_dir, mask, files_list):
+        cur_dir = os.path.normpath(cur_dir)
+
+        for f in os.listdir(cur_dir):
+            file_name = os.path.normpath(os.path.join(cur_dir, f))
+            if not f.startswith('.') and os.path.isdir(file_name):
+                list_dir(file_name, mask, files_list)
+            if f.startswith('.'):
+                continue
+            if fnmatch.fnmatch(f, mask) and os.path.isfile(file_name):
+                files_list.append(file_name)
+
+
+    all_files = []
+    for filename in args.files:
+        filename = os.path.abspath(os.path.normpath(unicode(filename, locale.getpreferredencoding())))
+
+        if os.path.isfile(filename):
+            all_files.append(filename)
+        else:
+            if os.path.isdir(filename):
+                list_dir(os.path.dirname(filename), '*.*', all_files)
+            else:
+                list_dir(os.path.dirname(filename), os.path.basename(filename), all_files)
+
+    if args.type == 'igo' and all_files:
+        speedcams = igo2sygic(all_files, args.igo_types, args.debug)
 
         print('\nSpeedCameras after cleaning: {:,}'.format(len(speedcams)))
 

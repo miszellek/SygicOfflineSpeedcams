@@ -8,6 +8,7 @@
 
 Converter Speed Camera / Photo Radar from another formats (only from IGO at this time) to Sygic offlinespeedcams.dat
 
+![screenshot](screenshot.jpg)
 
 ## Installing
 
@@ -31,7 +32,7 @@ python offlinespeedcams.py speedcam_A.txt speedcam_AND.txt speedcam_B.txt speedc
 python offlinespeedcams.py --debug SpeedCamText.txt
 
 # 'type' translator
-python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5 speedcam_EU.txt
+python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 speedcam_EU.txt
 ```
 
 
@@ -43,13 +44,23 @@ Hmm... difficult question... So...
 
 Igo types of speed camera:
 ```
-1 - fixed speed camera locations
-2 - combined red light and speed cameras
-3 - fixed red light camera locations 
-4 - section camera positions
-5 - lasers, hand-held radars and other mobile speed camera locations 
-6 - railway crossing
-7 - not constant mobile locations
+1 - fixed speed camera
+2 - red light and speed camera / build-in
+3 - red light camera
+4 - average speed camera
+5 - mobile speed camera, lasers, hand-held radars and other 
+6 - railroad crossing
+7 - bus line camera
+8 - high accident zone / dangerous way
+9 - school zone
+10 - town entry point
+11 - red light and speed camera
+12 - toll booth
+13 - hospital, ambulance
+14 - fire station
+15 - congestion charge zone
+30 - stickers camera
+31 - dangerous area
 ```
 
 Sygic types of speed camera:
@@ -72,6 +83,8 @@ Sygic types of speed camera:
 15 - RADAR_CLOSURE
 16 - RADAR_SCHOOLZONE
 ```
+
+![Sygic icons](sygic_icons.png)
 
 In Sygic, column 'Type' in table 'OfflineSpeedcam' is equivalent to speedCamWarn{Type} in TTS info2.ini (Type: 9 = speedCamWarn9):
 ```
@@ -121,7 +134,7 @@ speedCamWarn16=School zone is %DISTANCE% ahead.
 And convert points like this:
 ```
 # import all types speed camera, but omit railway crossing (6)
-python offlinespeedcams.py --igotypes 1=1,2=6,3=2,4=4,5=9,7=5 SpeedCamText.txt
+python offlinespeedcams.py --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 SpeedCamText.txt
 ```
 
 Of Course you can, not modify info2.ini, but you only hear "Speed camera is ahead", for every type.
