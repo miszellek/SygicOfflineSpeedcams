@@ -26,13 +26,16 @@ wget https://raw.githubusercontent.com/miszellek/SygicOfflineSpeedcams/master/of
 
 ```
 # basic example 
+python offlinespeedcams.py speedcam.txt
+
+# several speedcam.txt files 
 python offlinespeedcams.py speedcam_A.txt speedcam_AND.txt speedcam_B.txt speedcam_BG.txt speedcam_BiH.txt speedcam_BY.txt speedcam_CH.txt speedcam_CY.txt speedcam_CZ.txt speedcam_D.txt speedcam_DK.txt speedcam_E.txt speedcam_EST.txt speedcam_F.txt speedcam_FIN.txt speedcam_FL.txt speedcam_GB.txt speedcam_GR.txt speedcam_H.txt speedcam_HR.txt speedcam_I.txt speedcam_IRL.txt speedcam_IS.txt speedcam_KOS.txt speedcam_L.txt speedcam_LT.txt speedcam_LV.txt speedcam_M.txt speedcam_MA.txt speedcam_MK.txt speedcam_MNE.txt speedcam_N.txt speedcam_NL.txt speedcam_P.txt speedcam_PL.txt speedcam_RO.txt speedcam_RUS.txt speedcam_S.txt speedcam_SK.txt speedcam_SLO.txt speedcam_SRB.txt speedcam_TR.txt speedcam_UA.txt 
 
 # with debug information 
-python offlinespeedcams.py --debug SpeedCamText.txt
+python offlinespeedcams.py --debug speedcam.txt
 
-# 'type' translator
-python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 speedcam_EU.txt
+# with custom 'type' translator
+python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 speedcam.txt
 ```
 
 
@@ -40,7 +43,7 @@ python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,
 
 **What for is a --igotypes switch?**
 
-Hmm... difficult question... So...
+It's the option to specify how speed camera types will be translated between iGo and Sygic.
 
 Igo types of speed camera:
 ```
@@ -84,70 +87,8 @@ Sygic types of speed camera:
 16 - RADAR_SCHOOLZONE
 ```
 
-![Sygic icons](sygic_icons.png)
+Default translation is `1=1,2=6,3=2,4=4,5=5,6=2,7=2,8=11,9=16,10=10,11=6,12=2,13=10,15=12,17=9,31=11`.
 
-In Sygic, column 'Type' in table 'OfflineSpeedcam' is equivalent to speedCamWarn{Type} in TTS info2.ini (Type: 9 = speedCamWarn9):
-```
-#I was try change it here
-/Android/data/com.sygic.aura/files/Res/tts_info/TTS {YOUR LANGUAGE}/info2.ini
-```
-```
-#but I had modify it inside the APK (and resign the apk after that):
-\assets\Res\tts_info\TTS {YOUR LANGUAGE}/info2.ini
-```
-
-For example ENG TTS:
-```
-/Android/data/com.sygic.aura/files/Res/tts_info/TTS British English/info2.ini
-
-[TRANSLATIONS]
-...
-speedCamWarn1=Speed camera is ahead.
-speedCamWarn9=Police is ahead.
-speedCamWarn16=Schoolzone is ahead.
-speedCamWarn15=Closure is ahead.
-speedCamWarn12=Traffic is ahead.
-speedCamWarn11=Accident is ahead.
-...
-```
-
-You can change it to:
-```
-speedCamWarn1=Speed camera is %DISTANCE% ahead.
-speedCamWarn2=Red light camera is %DISTANCE% ahead.
-speedCamWarn3=Semi mobile speed camera is %DISTANCE% ahead.
-speedCamWarn4=Average speed camera is %DISTANCE% ahead.
-speedCamWarn5=Mobile speed camera is %DISTANCE% ahead.
-speedCamWarn6=Red light and speed camera is %DISTANCE% ahead.
-speedCamWarn7=Mobile red light camera is %DISTANCE% ahead.
-speedCamWarn8=Mobile average speed camera is %DISTANCE% ahead.
-speedCamWarn9=Police is %DISTANCE% ahead.
-speedCamWarn10=Different speed camera is %DISTANCE% ahead.
-speedCamWarn11=Accident is %DISTANCE% ahead.
-speedCamWarn12=Traffic is %DISTANCE% ahead.
-speedCamWarn13=Weight check is %DISTANCE% ahead.
-speedCamWarn14=Distance check is %DISTANCE% ahead.
-speedCamWarn15=Closure is %DISTANCE% ahead.
-speedCamWarn16=School zone is %DISTANCE% ahead.
-```
-
-And convert points like this:
-```
-# import all types speed camera, but omit railway crossing (6)
-python offlinespeedcams.py --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 SpeedCamText.txt
-```
-
-Of Course you can, not modify info2.ini, but you only hear "Speed camera is ahead", for every type.
-
-PS:
-Type 3 - RADAR_SEMIMOBILE_SPEED only show icon, no sound
-
-**What with Angle, BothWays and Osm?**
-
-I did not want to risk that something will not show up, so: 
-* Angle is always Null = all directions (360)
-* BothWays is always 1 = true
-* Osm is always 0 = false, because i don't know what for it is ...
 
 **I can't hear the speed of speed camera**
 
