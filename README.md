@@ -22,7 +22,7 @@ Install python3:
 
 ## Installing
 
-Open [offlinespeedcams.py](offlinespeedcams.py), click in `Raw` button and save page as `offlinespeedcams.py`
+Click in the "Clone or Download" button, then "Download ZIP". Extract contents.
 
 
 ## Usage
