@@ -10,31 +10,45 @@ Converter Speed Camera / Photo Radar from another formats (only from IGO at this
 
 ![screenshot](screenshot.jpg)
 
+## Pre Requisites
+
+Install python3:
+
+- **Windows**: download 3.x from [python.org downloads](https://www.python.org/downloads/windows/). Make sure the option to "Add Python to PATH" is checked.
+
+- **OSX**: use `brew` to install python3 with `brew install python3`
+
+- **Linux**: there is a very good chance your Linux distribution has Python installed already, just make sure it's python3.
+
 ## Installing
 
-### From the repository
-```
-git clone --recursive https://github.com/miszellek/SygicOfflineSpeedcams.git
-```
-### Directly from the GitHub 
-```
-wget https://raw.githubusercontent.com/miszellek/SygicOfflineSpeedcams/master/offlinespeedcams.py
-```
+Open [offlinespeedcams.py](raw/master/offlinespeedcams.py) and save as `offlinespeedcams.py`
 
 
 ## Usage
 
+Put your `offlinespeedcams.dat` file in same folder as `offlinespeedcams.py`. If you don't want use an existing one, another will be created, but you'll loose `OfflineZone` and `OfflineSpeedcam` previous records.
+
+Then, open a terminal/command-prompt and run one the following:
+
+
+Basic example: 
 ```
-# basic example 
 python offlinespeedcams.py speedcam.txt
+```
 
-# several speedcam.txt files 
+Several speedcam.txt files:
+```
 python offlinespeedcams.py speedcam_A.txt speedcam_AND.txt speedcam_B.txt speedcam_BG.txt speedcam_BiH.txt speedcam_BY.txt speedcam_CH.txt speedcam_CY.txt speedcam_CZ.txt speedcam_D.txt speedcam_DK.txt speedcam_E.txt speedcam_EST.txt speedcam_F.txt speedcam_FIN.txt speedcam_FL.txt speedcam_GB.txt speedcam_GR.txt speedcam_H.txt speedcam_HR.txt speedcam_I.txt speedcam_IRL.txt speedcam_IS.txt speedcam_KOS.txt speedcam_L.txt speedcam_LT.txt speedcam_LV.txt speedcam_M.txt speedcam_MA.txt speedcam_MK.txt speedcam_MNE.txt speedcam_N.txt speedcam_NL.txt speedcam_P.txt speedcam_PL.txt speedcam_RO.txt speedcam_RUS.txt speedcam_S.txt speedcam_SK.txt speedcam_SLO.txt speedcam_SRB.txt speedcam_TR.txt speedcam_UA.txt 
+```
 
-# with debug information 
+With debug information:
+```
 python offlinespeedcams.py --debug speedcam.txt
+```
 
-# with custom 'type' translator
+With custom 'type' translator:
+```
 python offlinespeedcams.py --debug --igotypes 1=1,2=6,3=2,4=4,5=9,7=5,8=11,9=16,11=2,15=12,30=10,31=11 speedcam.txt
 ```
 
