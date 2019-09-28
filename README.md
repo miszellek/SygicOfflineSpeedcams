@@ -22,7 +22,7 @@ Install python3:
 
 ## Installing
 
-Click in the "Clone or Download" button, then "Download ZIP". Extract contents.
+Click in the "Clone or Download" button, then "Download ZIP". Save and extract contents.
 
 
 ## Usage
