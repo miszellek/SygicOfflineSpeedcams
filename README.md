@@ -106,7 +106,7 @@ Default translation is `1=1,2=6,3=2,4=4,5=5,6=2,7=2,8=11,9=16,10=10,11=6,12=2,13
 
 **I can't hear the speed of speed camera**
 
-At this moment (v 17.2.11) Sygic cannot speak maximum speed of speed camera ;( maybe in future...
+At this moment (v 18.4.2) Sygic cannot speak maximum speed of speed camera ;( maybe in future...
 
 **What when I not use origin offlinespeedcams.dat from Sygic?**
 
