@@ -381,18 +381,20 @@ def points2map(speedcams):
         html_file.write('\n'.join(html))
 
 
-def save_dat(speedcams, dat_filename, debug):
+def save_dat(speedcams, dat_filename, unit, debug):
     db_is_new = not os.path.exists(dat_filename)
+
+    speed_limit_units = 1 if unit == 'mph' else 0
 
     conn = sqlite3.connect(dat_filename, isolation_level=None)
 
     if db_is_new:
         db_schema = """
-                    CREATE TABLE OfflineSpeedcam (Id INT NOT NULL, Latitude INT NOT NULL, Longitude INT NOT NULL, Type BYTE NOT NULL, Angle INT, BothWays BIT, SpeedLimit INT, Osm BIT);
-                    CREATE INDEX speedcamsLatLon ON OfflineSpeedcam (Latitude, Longitude);
-                    
-                    CREATE TABLE OfflineZone (Id INT NOT NULL, Type BYTE NOT NULL, SpeedLimit SMALLINT NOT NULL, LatitudeMin INT NOT NULL, LongitudeMin INT NOT NULL, LatitudeMax INT NOT NULL, LongitudeMax INT NOT NULL);
-                    CREATE INDEX zonesLatLon ON OfflineZone (LatitudeMin, LatitudeMax, LongitudeMin, LongitudeMax);
+                    CREATE TABLE Info (Version REAL not null, CreatedAt text not null, Note nvarchar(255) null);
+                    CREATE TABLE OfflineSpeedcam (Id int not null, Latitude int not null, Longitude int not null, Type byte not null, Angle int null, BothWays bit, SpeedLimit int, Osm bit, PairId int null, SpeedLimitUnits byte null);
+                    CREATE TABLE OfflineZone (Id int not null, Type byte not null, SpeedLimit smallint not null, LatitudeMin int not null, LongitudeMin int not null, LatitudeMax int not null, LongitudeMax int not null);
+
+                    CREATE INDEX speedcamsLatLon ON OfflineSpeedcam (Latitude, Longitude);                    
                     """
 
         conn.executescript(db_schema)
@@ -418,13 +420,15 @@ def save_dat(speedcams, dat_filename, debug):
 
         if (latitude, longitude) not in offspeedcams:
             max_id += 1
-            sql.append('insert into OfflineSpeedcam (Id, Latitude, Longitude, Type, Angle, BothWays, SpeedLimit, Osm) values ({Id}, {Latitude}, {Longitude}, {Type}, {Angle}, {BothWays}, {SpeedLimit}, 0);'.format(Id=max_id, Latitude=latitude, Longitude=longitude, SpeedLimit=speed_limit, Type=kind, Angle=angle, BothWays=both_ways))
+            sql.append('INSERT INTO OfflineSpeedcam (Id, Latitude, Longitude, Type, Angle, BothWays, SpeedLimit, Osm, PairId, SpeedLimitUnits) VALUES ({Id}, {Latitude}, {Longitude}, {Type}, {Angle}, {BothWays}, {SpeedLimit}, 0, NULL, {SpeedLimitUnits});'.format(Id=max_id, Latitude=latitude, Longitude=longitude, SpeedLimit=speed_limit, Type=kind, Angle=angle, BothWays=both_ways, SpeedLimitUnits=speed_limit_units))
             speedcams_added.append(sc)
         else:
             if debug:
                 print('Already exists in db', (latitude, longitude))
 
     if sql:
+        sql.append('DELETE FROM Info;')
+        sql.append('INSERT INTO Info (Version, CreatedAt, Note) VALUES ({version}, "{createdAt}", NULL);'.format(version=2, createdAt=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         conn.executescript('BEGIN TRANSACTION')
         conn.executescript(''.join(sql))
         conn.executescript('COMMIT')
@@ -441,7 +445,8 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-t', '--type', choices=['igo'], default='igo', help='Input type')
     arg_parser.add_argument('-d', '--dat', type=str, default='offlinespeedcams.dat', help='DAT file')
-    arg_parser.add_argument('-it', '--igotypes', action=type(b'', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
+    arg_parser.add_argument('-u', '--unit', choices=['kmh','mph'], default='kmh', help='Unit: kmh or mph')
+    arg_parser.add_argument('-it', '--igotypes', action=type(b'', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={'1':'1','2':'6','3':'2','4':'4','5':'5','6':'2','7':'2','8':'11','9':'16','10':'10','11':'6','12':'2','13':'10','15':'12','17':'9','31':'11'}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
     arg_parser.add_argument('--debug', action='store_true', help='Print debug data')
     arg_parser.add_argument('--map', action='store_true', default=True, help='Generate Google Maps with added points')
     arg_parser.add_argument('--dat2map', action='store_true', default=False, help='Generate Google Maps with points from offlinespeedcams.dat')
@@ -481,7 +486,7 @@ if __name__ == '__main__':
 
         print('\nSpeedCameras after cleaning: {:,}'.format(len(speedcams)))
 
-        speedcams_added = save_dat(speedcams, args.dat, args.debug)
+        speedcams_added = save_dat(speedcams, args.dat, args.unit, args.debug)
 
         print('\nSpeedCameras added: {:,}'.format(len(speedcams_added)))
 
