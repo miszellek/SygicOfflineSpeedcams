@@ -70,7 +70,7 @@ def igo2sygic(files, igo_types, debug):
                         print(speedcam_csv.line_num, 'BAD LINE !!!', sep='; ')
                     continue
 
-                latitude, longitude, speed, kind = row[1], row[0], row[3], row[2]
+                longitude, latitude, kind, speed, dirtype, angle = row[0], row[1], row[2], row[3], row[4], row[5]
 
                 #is latitude a float? if not, omit record
                 try:
@@ -113,8 +113,11 @@ def igo2sygic(files, igo_types, debug):
                 else:
                     kind = '1'
 
+                #igo dirtype equals 0 or 2: both ways; dirtype equals 1: single direction
+                both_ways = 0 if int(dirtype) == 1 else 1
+
                 #convert to sygic format
-                speedcams.append([int(float(latitude) * 100000), int(float(longitude) * 100000), int(speed), int(kind)])
+                speedcams.append([int(float(latitude) * 100000), int(float(longitude) * 100000), int(speed), int(kind), int(angle), int(both_ways)])
 
     #sort by latitude, longitude, speed
     speedcams.sort(key=lambda x: (x[0], x[1], x[2]))
@@ -134,7 +137,7 @@ def igo2sygic(files, igo_types, debug):
     while speedcams2:
         index1 -= 1
 
-        latitude1, longitude1, speed1, _ = speedcams2.pop()
+        latitude1, longitude1, speed1, kind1, angle1, both_ways1 = speedcams2.pop()
 
         location = str(latitude1) + ',' + str(longitude1)
 
@@ -144,12 +147,12 @@ def igo2sygic(files, igo_types, debug):
         index2 = index1
         for speedcam2 in reversed(speedcams2):
             index2 -= 1
-            latitude2, longitude2, speed2, _ = speedcam2
+            latitude2, longitude2, speed2, kind2, angle2, both_ways2 = speedcam2
 
             if latitude1 == latitude2 and longitude1 == longitude2:
                 if location not in radars:
-                    radars[location] = [[index1, latitude1, longitude1, speed1, 0]]
-                radars[location].append([index2, latitude2, longitude2, speed2, 0])
+                    radars[location] = [[index1, latitude1, longitude1, speed1, kind1, angle1, both_ways1]]
+                radars[location].append([index2, latitude2, longitude2, speed2, kind2, angle2, both_ways2])
             else:
                 break
 
@@ -200,7 +203,7 @@ def dat2points(dat_filename):
 
     cursor = conn.cursor()
 
-    cursor.execute('SELECT Latitude, Longitude, SpeedLimit, Type FROM OfflineSpeedcam ORDER BY Latitude, Longitude')
+    cursor.execute('SELECT Latitude, Longitude, SpeedLimit, Type, Angle, BothWays FROM OfflineSpeedcam ORDER BY Latitude, Longitude')
 
     return cursor.fetchall()
 
@@ -280,7 +283,7 @@ def points2map(speedcams):
     html.append('        var speedCams = [')
 
     for sc in speedcams:
-        latitude, longitude, speed_limit, kind = sc
+        latitude, longitude, speed_limit, kind, angle, both_ways = sc
 
         latitude = str(float(latitude) / 100000)
         longitude = str(float(longitude) / 100000)
@@ -411,11 +414,11 @@ def save_dat(speedcams, dat_filename, debug):
     speedcams_added = []
     sql = []
     for sc in speedcams:
-        latitude, longitude, speed_limit, kind = sc
+        latitude, longitude, speed_limit, kind, angle, both_ways = sc
 
         if (latitude, longitude) not in offspeedcams:
             max_id += 1
-            sql.append('insert into OfflineSpeedcam (Id, Latitude, Longitude, Type, Angle, BothWays, SpeedLimit, Osm) values ({Id}, {Latitude}, {Longitude}, {Type}, NULL, 1, {SpeedLimit}, 0);'.format(Id=max_id, Latitude=latitude, Longitude=longitude, SpeedLimit=speed_limit, Type=kind))
+            sql.append('insert into OfflineSpeedcam (Id, Latitude, Longitude, Type, Angle, BothWays, SpeedLimit, Osm) values ({Id}, {Latitude}, {Longitude}, {Type}, {Angle}, {BothWays}, {SpeedLimit}, 0);'.format(Id=max_id, Latitude=latitude, Longitude=longitude, SpeedLimit=speed_limit, Type=kind, Angle=angle, BothWays=both_ways))
             speedcams_added.append(sc)
         else:
             if debug:
