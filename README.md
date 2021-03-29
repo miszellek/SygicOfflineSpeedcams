@@ -1,7 +1,7 @@
 # Sygic OfflineSpeedcams
 
 ![Sygic 15.6.5+](https://img.shields.io/badge/sygic-15.6.5%2B-red.svg)
-![Python 2.7+, 3.6+](https://img.shields.io/badge/python-2.7%2B%2C%203.6%2B-blue.svg)
+![Python 2.7+, 3.6+](https://img.shields.io/badge/python-2.7%2B%2C%203.9%2B-blue.svg)
 [![MIT Licence](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/miszellek)
 

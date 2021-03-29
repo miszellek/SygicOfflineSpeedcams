@@ -56,8 +56,8 @@ def igo2sygic(files, igo_types, debug):
         if debug:
             print('\n' + filename)
 
-        with open(filename, 'rb') as csvfile:
-            speedcam_csv = csv.reader(csvfile, delimiter=b',', quotechar=b'"')
+        with (open(filename, 'rb') if bytes is str else open(filename, mode='r', newline='')) as csvfile:
+            speedcam_csv = csv.reader(csvfile, delimiter=str(','), quotechar=str('"'))
 
             for row in speedcam_csv:
                 #omit header
@@ -427,11 +427,11 @@ def save_dat(speedcams, dat_filename, unit, debug):
                 print('Already exists in db', (latitude, longitude))
 
     if sql:
+        sql.insert(0, 'BEGIN;')
         sql.append('DELETE FROM Info;')
         sql.append('INSERT INTO Info (Version, CreatedAt, Note) VALUES ({version}, "{createdAt}", NULL);'.format(version=2, createdAt=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        conn.executescript('BEGIN TRANSACTION')
+        sql.append('COMMIT;')
         conn.executescript(''.join(sql))
-        conn.executescript('COMMIT')
 
     return speedcams_added
 
@@ -445,8 +445,8 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-t', '--type', choices=['igo'], default='igo', help='Input type')
     arg_parser.add_argument('-d', '--dat', type=str, default='offlinespeedcams.dat', help='DAT file')
-    arg_parser.add_argument('-u', '--unit', choices=['kmh','mph'], default='kmh', help='Unit: kmh or mph')
-    arg_parser.add_argument('-it', '--igotypes', action=type(b'', (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={'1':'1','2':'6','3':'2','4':'4','5':'5','6':'2','7':'2','8':'11','9':'16','10':'10','11':'6','12':'2','13':'10','15':'12','17':'9','31':'11'}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
+    arg_parser.add_argument('-u', '--unit', choices=['kmh', 'mph'], default='kmh', help='Unit: kmh or mph')
+    arg_parser.add_argument('-it', '--igotypes', action=type(str(''), (argparse.Action,), dict(__call__=lambda self, parser, namespace, values, option_string: getattr(namespace, self.dest).update(dict([v.split('=') for v in values.replace(';', ',').split(',') if len(v.split('=')) == 2])))), default={'1': '1', '2': '6', '3': '2', '4': '4', '5': '5', '6': '2', '7': '2', '8': '11', '9': '16', '10': '10', '11': '6', '12': '2', '13': '10', '15': '12', '17': '9', '31': '11'}, metavar='KEY1=VAL1,KEY2=VAL2;KEY3=VAL3...', dest='igo_types', help='You can specific your own types, first IGO, second Sygic')
     arg_parser.add_argument('--debug', action='store_true', help='Print debug data')
     arg_parser.add_argument('--map', action='store_true', default=True, help='Generate Google Maps with added points')
     arg_parser.add_argument('--dat2map', action='store_true', default=False, help='Generate Google Maps with points from offlinespeedcams.dat')
@@ -471,7 +471,14 @@ if __name__ == '__main__':
 
     all_files = []
     for filename in args.files:
-        filename = os.path.abspath(os.path.normpath(unicode(filename, locale.getpreferredencoding())))
+
+        try:
+            if type(filename) == unicode:
+                filename = unicode(filename, locale.getpreferredencoding())
+        except:
+            filename = str(filename)
+
+        filename = os.path.abspath(os.path.normpath(filename))
 
         if os.path.isfile(filename):
             all_files.append(filename)
