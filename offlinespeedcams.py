@@ -32,7 +32,6 @@ import os
 import re
 import datetime
 
-
 def igo2sygic(files, igo_types, debug):
     """
     SpeedCamText.txt
@@ -126,11 +125,11 @@ def igo2sygic(files, igo_types, debug):
 
     #eliminate duplicates:
     #append duplicated speed cameras to radars dict group by location
-    radars = {}  #radars[location: latitude,longitude] = [[index, latitude, longitude, speed, mark_to_del: 0 - ok; 1 - del], [...], [...]]
+    radars = {}  #radars[location: latitude,longitude] = [[index, latitude, longitude, speed, kind, angle, both_ways, delete_marker: 0 - ok; 1 - del], [...], [...]]
 
     INDEX = 0
     SPEED = 3
-    MARK = 4
+    MARK = 7
 
     speedcams2 = speedcams[:]
     index1 = len(speedcams2)
@@ -150,9 +149,10 @@ def igo2sygic(files, igo_types, debug):
             latitude2, longitude2, speed2, kind2, angle2, both_ways2 = speedcam2
 
             if latitude1 == latitude2 and longitude1 == longitude2:
+                delete_marker = 0
                 if location not in radars:
-                    radars[location] = [[index1, latitude1, longitude1, speed1, kind1, angle1, both_ways1]]
-                radars[location].append([index2, latitude2, longitude2, speed2, kind2, angle2, both_ways2])
+                    radars[location] = [[index1, latitude1, longitude1, speed1, kind1, angle1, both_ways1, delete_marker]]
+                radars[location].append([index2, latitude2, longitude2, speed2, kind2, angle2, both_ways2, delete_marker])
             else:
                 break
 
